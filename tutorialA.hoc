@@ -1,0 +1,55 @@
+/* Comments are C style */
+/* The default values are:
+
+   Setting can be done in three ways:
+   One is the dot notation:
+
+   These are the default values here:
+   soma.nseg = 1
+   soma.diam = 500
+   soma.L = 18.8
+
+   Two is by specifying the section name right before setting values:
+
+   soma nseg = 1
+   soma diam = 500
+   soma L = 18.8
+
+   or using braces:
+
+   soma {
+   nseg = 1
+   diam = 18.8
+   L = 18.8
+   }
+
+   Note that the opening brace cannot be on a line of its own.
+
+   Three is to use the access statement:
+
+   access soma
+
+   The access statement tells NEURON that when we aren't specifying a particular section (i.e. we're not using method 1 or 2), all subsequent references to properties of a section belong to the default section, in this case the soma
+ */
+
+create soma
+access soma
+
+soma nseg = 1
+soma diam = 18.8 // micro metres
+soma L = 18.8 // micro metres
+soma Ra = 123.0 // ohm-cm
+
+soma insert hh // add mechanism
+
+/* NEURON makes the distinction between mechanisms that are attributed to an entire section (e.g., HH channels) and mechanisms that are associated with a particular point in the section (e.g., voltage clamp or synapse). While the former are most conveniently expressed in terms of per unit area, the point processes are more conveniently expressed in absolute terms (e.g., current injection is usually expressed in terms of nA instead of nA/cm2). Point processes also differ in that you can insert several in the same segment. */
+
+/* Must create an object to create a point process */
+objectvar stim
+/* Attach the current clamp object to it */
+stim = new IClamp(0.5)
+/* Must use a dot notation for point processes */
+stim.del = 100
+stim.dur = 100
+stim.amp = 0.1
+

@@ -1,0 +1,90 @@
+// http://www.anc.ed.ac.uk/school/neuron/tutorial/tutB.html
+
+// Array indices start from 0
+ndend = 2
+create soma, dend[ndend]
+
+/* 
+ We need to have the appropriate number of segments to make sure we get
+ accurate results.
+ One segment is too less - the entire dendrite is one point, for example.
+ Too many segments implies you unnecessarily increase simulation time.
+
+ set nseg before that way if you change it, the connections are updated
+ correctly.
+
+ Increasing the segments implies increasing the spatial resolution of the
+ cable equation.
+
+ The reason for NEURON's distinction between sections (high level conceptual
+ modelling construct) and segments (low level numerical simulation detail) is
+ to allow you to create models that do not rely on the number of segments (or
+ compartments) in the model. Rather, you can create a model entirely
+ independent of the numerical details. Then, if during the analysis you find
+ you need to increase the spatial resolution in a certain part of the model,
+ you can do so simply by increasing nseg for that section.
+*/
+soma {
+  nseg = 1
+  diam = 18.8
+  L = 18.8
+  Ra = 123.0
+  // active channel characteristics
+  insert hh
+  // soma sodium channel density
+  gnabar_hh = 0.25 // S/cm2
+  gl_hh = 0.0001666
+  el_hh = -60.0
+}
+
+dend[0] {
+  nseg = 5
+  diam = 3.18
+  L = 701.9
+  Ra = 123
+}
+
+dend[1] {
+  nseg = 5
+  diam = 2.0
+  L = 549.1
+  Ra = 123
+}
+
+// Set the passive membrane properties
+// for loop example
+for i = 0, ndend-1 dend[i] {
+  insert pas
+  // conductance S/cm2
+  g_pas = .0001667
+  // leakage equilibrium potential in mV
+  e_pas = -60.0
+}
+
+
+/* Connect them to opposite ends of the soma */
+connect dend[0](0), soma(0)
+connect dend[1](0), soma(1)
+
+/* Create a current stimulus */
+objectvar stim
+stim = new IClamp(0.5)
+// delay in ms
+// wait so that the v_init of different sections stabilises
+stim.del = 100
+// duration in ms
+stim.dur = 100
+// amplitude of the stimulus in nA
+stim.amp = 0.1
+
+proc block_sodium() {
+  soma gnabar_hh = 0
+}
+proc unblock_sodium() { local block_fraction
+  // set it local so that it doesn't hang around in memory
+  block_fraction = $1
+  // argument 1 and so on
+  soma gnabar_hh = $1 * 0.25
+}
+
+tstop = 300
